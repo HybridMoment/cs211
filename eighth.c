@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
 
 typedef
 struct _Node
@@ -16,53 +16,54 @@ Node* insert(struct _Node* , struct _Node*);
 int bool_search( struct _Node* , int , int);
 Node* create(int);
 void inorder(Node*);
-int getLevel(Node*, Node*);
 
 int main ( int arc, char * argv[]){
-	
+
 	FILE* fp = fopen(argv[1] , "r");
 
 	if(fp == NULL){
-		printf("Error opening file ");
+		printf("error\n");
 	}
-	char* buffer = (char*)malloc(sizeof(char));
-	char* token;
-	int data;
-	Node* nodeToInsert = NULL;
+
 	Node* root = NULL;
 	int truthVal = 0;
+	char insert_or_delete; 
+	int data = 0;
 
-	while(fgets( buffer, sizeof(buffer), fp)!= NULL){
-		token = strtok(buffer, "\t");
-		data = atoi(strtok(NULL,"\t")); 
-		
-		Node* newNode;
-		newNode = create(data);
+	while(!feof(fp)){
+		fscanf(fp, "%c %d\n",&insert_or_delete, &data);
+		//printf(" Line #%d\n",i );
+		//printf("tok:%cVal:%d\n",inOrdel,value);
+		Node* newNode = create(data);
 
-		if(*token == 'i'){
-			//insert
-			root = insert(root,newNode);
-			//printf("New Node data : %d\n",newNode->key );
-		}else if(*token == 's'){
+		if(insert_or_delete == 'i'){
+
 			truthVal = bool_search(root,data,1);
-			//printf("truthVal %d\n",truthVal );
+			if(truthVal){
+				printf("duplicate\n");
+			}else{
+				//insert
+				root = insert(root,newNode);
+				printf("inserted %d\n",newNode->level);
+			}
+
+		}else if(insert_or_delete == 's'){
+			truthVal = bool_search(root,data,1);
 			if(truthVal){
 				printf("present %d\n",truthVal);
 			}else{
-				printf("abscent\n");
+				printf("absent\n");
 			}
 		}else{
-			//error
-			printf("error with input");
+			printf("error on input\n");
 		}
 	}
-	//inorder(root);
-
 }
 Node* insert( Node* root , Node* newNode){
-
+	int level = 1;
 	if(root == NULL){
 		root = newNode;
+		root->level = 1;
 	}else{
 		Node* prev = NULL;
 		Node* curr = root;
@@ -75,14 +76,19 @@ Node* insert( Node* root , Node* newNode){
 			
 				curr = curr->left;
 			}
+			level++;
 		}
 		if(prev->key < newNode->key){
-			prev->right = newNode;
+			newNode->level = level;
+			prev->right = newNode; // if off by one add +1 to level here 
 		}else{
+			newNode->level = level;
 			prev->left = newNode;
 		}
 		
 	}
+	
+	//printf("Success insert");
 	return root;
 	
 }
@@ -122,7 +128,3 @@ void inorder(Node* root){
 		inorder(root->right);
 	}
 }
-
-
-
-
